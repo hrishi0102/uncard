@@ -1,5 +1,5 @@
 {
-  "agentcardBaseUrl": "https://api.agentcard.sh",
+  "agentcardBaseUrl": "http://localhost:3100/api/mock-agentcard",
   "chainSelectorName": "arc-testnet",
   "vaultAddress": "0x0000000000000000000000000000000000000000",
   "gasLimit": "500000"
