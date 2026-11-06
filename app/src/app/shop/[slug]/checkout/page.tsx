@@ -145,7 +145,13 @@ function Field({ label, name, ...rest }: { label: string; name: string } & React
   return (
     <div>
       <label htmlFor={name} className="block text-sm font-medium">{label}</label>
-      <input id={name} name={name} className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900" {...rest} />
+      <input
+        id={name}
+        name={name}
+        aria-label={label}
+        className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900"
+        {...rest}
+      />
     </div>
   );
 }
