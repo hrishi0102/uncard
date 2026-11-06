@@ -1,0 +1,22 @@
+# deps / builds
+node_modules/
+.next/
+out/
+dist/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+*.tsbuildinfo
+
+# local state and secrets
+.env
+.env.local
+.env.*.local
+app/.data/
+cre/**/.env
+*.wasm
+
+# local deployments (testnet ones are committed on purpose)
+contracts/deployments/31337.json
+
+.DS_Store
