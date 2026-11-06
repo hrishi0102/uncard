@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-receipt);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -48,39 +48,50 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* AnyCheckout tokens: Mumbai kaali-peeli taxi + carbon-copy receipts */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --ground: #e9ebe7; /* counter grey */
+  --paper: #ffffff;
+  --ink: #1c1d22;
+  --carbon: #2b2f8c; /* carbon-copy blue for money */
+  --taxi: #ffc400;
+  --taxi-ink: #1c1d22;
+  --stop: #c8233a; /* declines */
+  --go: #0b8a5f; /* settled */
+  --hairline: #d4d7d1;
+
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #ffffff;
+  --secondary: #dfe2dc;
+  --secondary-foreground: var(--ink);
+  --muted: #dfe2dc;
+  --muted-foreground: #5c6159;
+  --accent: #f2f3ef;
+  --accent-foreground: var(--ink);
+  --destructive: var(--stop);
+  --border: var(--hairline);
+  --input: #c9cdc5;
+  --ring: var(--carbon);
+  --chart-1: var(--carbon);
+  --chart-2: var(--taxi);
+  --chart-3: var(--go);
+  --chart-4: var(--stop);
+  --chart-5: #5c6159;
+  --radius: 0.5rem;
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--carbon);
 }
 
 .dark {
@@ -123,8 +134,67 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "ss01";
   }
   html {
     @apply font-sans;
+  }
+  :focus-visible {
+    outline: 2px solid var(--carbon);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------- receipts ---------- */
+.receipt {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-receipt);
+  font-variant-numeric: tabular-nums;
+  /* torn bottom edge */
+  --tear: 7px;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tear)) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tear)) var(--tear) repeat-x;
+  padding-bottom: calc(var(--tear) + 0.75rem);
+}
+.receipt-rule {
+  border: 0;
+  border-top: 1px dashed #b9bdb5;
+  margin: 0.6rem 0;
+}
+.money {
+  color: var(--carbon);
+  font-family: var(--font-receipt);
+  font-variant-numeric: tabular-nums;
+}
+.stamp {
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  padding: 0.05rem 0.45rem;
+  font-family: var(--font-receipt);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transform: rotate(-4deg);
+}
+.taxi-stripe {
+  background: repeating-linear-gradient(90deg, var(--taxi) 0 18px, var(--ink) 18px 36px);
+  height: 6px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .print-in {
+    animation: print-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes print-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(-6px);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+      transform: none;
+    }
   }
 }

@@ -587,7 +587,12 @@ export async function abandonCheckout(id: string) {
 // Background reconciliation (catches missed webhooks, timeouts, CRE results)
 // ======================================================================
 
-let running = false;
+type LoopGlobals = typeof globalThis & {
+  __reconcileTimer?: ReturnType<typeof setInterval>;
+  __reconcileFn?: () => Promise<void>;
+  __reconcileRunning?: boolean;
+};
+const lg = globalThis as LoopGlobals;
 
 async function settleOrRetry(intent: Intent, now: number) {
   await finalizeFromChain(intent.id);
@@ -610,8 +615,8 @@ async function settleOrRetry(intent: Intent, now: number) {
 }
 
 export async function reconcileOnce() {
-  if (running || !chain.isConfigured()) return;
-  running = true;
+  if (lg.__reconcileRunning || !chain.isConfigured()) return;
+  lg.__reconcileRunning = true;
   try {
     const now = nowSec();
     for (const intent of Object.values(read().intents)) {
@@ -660,15 +665,16 @@ export async function reconcileOnce() {
       }
     }
   } finally {
-    running = false;
+    lg.__reconcileRunning = false;
   }
 }
 
-type G = typeof globalThis & { __reconcileTimer?: ReturnType<typeof setInterval> };
+// The timer always calls the newest reconcileOnce, so hot reloads in dev never leave stale code running.
+lg.__reconcileFn = reconcileOnce;
+
 export function ensureBackgroundLoop() {
-  const g = globalThis as G;
-  if (g.__reconcileTimer) return;
-  g.__reconcileTimer = setInterval(() => void reconcileOnce(), 3000);
+  if (lg.__reconcileTimer) return;
+  lg.__reconcileTimer = setInterval(() => void lg.__reconcileFn?.(), 3000);
 }
 
 // ======================================================================
