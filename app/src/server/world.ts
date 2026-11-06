@@ -99,7 +99,7 @@ export async function pollDeviceToken(deviceCode: string): Promise<PollResult> {
   let res: Response;
   try {
     res = await fetch(d.token_endpoint, { method: "POST", headers, body: form, cache: "no-store" });
-  } catch (e) {
+  } catch {
     return { state: "pending" }; // connection timeout: back off and poll again
   }
   if (res.status === 503) return { state: "error", error: "world_unavailable" }; // never treat as approval
