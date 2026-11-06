@@ -40,10 +40,18 @@ contract AnyCheckoutVaultTest is Test {
 
     // ---------------- helpers ----------------
 
+    function _req(bytes32 id, address user, uint256 amount, bytes32 approvalRef)
+        internal
+        pure
+        returns (AnyCheckoutVault.HoldRequest memory)
+    {
+        return AnyCheckoutVault.HoldRequest(id, user, amount, TTL, MERCHANT, keccak256(abi.encode("card", id)), approvalRef);
+    }
+
     function _open(string memory intent, uint256 amount, bytes32 approvalRef) internal returns (bytes32 id) {
         id = keccak256(bytes(intent));
         vm.prank(operator);
-        vault.openHold(id, alice, amount, TTL, MERCHANT, approvalRef);
+        vault.openHold(_req(id, alice, amount, approvalRef));
     }
 
     function _report(uint8 action, bytes32 id, uint256 charged, bytes32 ref) internal {
@@ -89,18 +97,19 @@ contract AnyCheckoutVaultTest is Test {
         assertEq(uint8(h.status), uint8(AnyCheckoutVault.HoldStatus.Open));
         assertEq(h.expiresAt, block.timestamp + TTL);
         assertFalse(h.humanApproved);
+        assertEq(h.cardRef, keccak256(abi.encode("card", id)));
     }
 
     function test_onlyOperatorCanOpen() public {
         vm.prank(alice);
         vm.expectRevert(AnyCheckoutVault.NotOperator.selector);
-        vault.openHold(keccak256("x"), alice, 1 * USD, TTL, MERCHANT, bytes32(0));
+        vault.openHold(_req(keccak256("x"), alice, 1 * USD, bytes32(0)));
     }
 
     function test_overPerPurchaseLimitNeedsHuman() public {
         vm.prank(operator);
         vm.expectRevert(abi.encodeWithSelector(AnyCheckoutVault.OverPerPurchaseLimit.selector, 150 * USD, 100 * USD));
-        vault.openHold(keccak256("big"), alice, 150 * USD, TTL, MERCHANT, bytes32(0));
+        vault.openHold(_req(keccak256("big"), alice, 150 * USD, bytes32(0)));
 
         // Same purchase after a World ID approval goes through and does not use the allowance.
         bytes32 id = _open("big", 150 * USD, keccak256("world-approval"));
@@ -114,7 +123,7 @@ contract AnyCheckoutVaultTest is Test {
         _open("b", 90 * USD, bytes32(0));
         vm.prank(operator);
         vm.expectRevert(abi.encodeWithSelector(AnyCheckoutVault.OverWeeklyLimit.selector, 30 * USD, 20 * USD));
-        vault.openHold(keccak256("c"), alice, 30 * USD, TTL, MERCHANT, bytes32(0));
+        vault.openHold(_req(keccak256("c"), alice, 30 * USD, bytes32(0)));
 
         vm.warp(block.timestamp + 7 days);
         _open("c", 30 * USD, bytes32(0));
@@ -127,7 +136,7 @@ contract AnyCheckoutVaultTest is Test {
         vault.setPolicy(uint128(200 * USD), uint128(100 * USD), false);
         vm.prank(operator);
         vm.expectRevert(AnyCheckoutVault.AgentDisabled.selector);
-        vault.openHold(keccak256("x"), alice, 1 * USD, TTL, MERCHANT, keccak256("approval"));
+        vault.openHold(_req(keccak256("x"), alice, 1 * USD, keccak256("approval")));
     }
 
     function test_insufficientBalance() public {
@@ -135,14 +144,14 @@ contract AnyCheckoutVaultTest is Test {
         vault.setPolicy(uint128(10_000 * USD), uint128(10_000 * USD), true);
         vm.prank(operator);
         vm.expectRevert(AnyCheckoutVault.InsufficientBalance.selector);
-        vault.openHold(keccak256("x"), alice, 501 * USD, TTL, MERCHANT, bytes32(0));
+        vault.openHold(_req(keccak256("x"), alice, 501 * USD, bytes32(0)));
     }
 
     function test_holdIdCannotBeReused() public {
         _open("dup", 10 * USD, bytes32(0));
         vm.prank(operator);
         vm.expectRevert(AnyCheckoutVault.HoldExists.selector);
-        vault.openHold(keccak256(bytes("dup")), alice, 10 * USD, TTL, MERCHANT, bytes32(0));
+        vault.openHold(_req(keccak256(bytes("dup")), alice, 10 * USD, bytes32(0)));
     }
 
     // ---------------- settlement ----------------

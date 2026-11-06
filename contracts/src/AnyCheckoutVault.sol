@@ -99,6 +99,7 @@ contract AnyCheckoutVault is IReceiver {
         uint256 charged; // what the merchant actually charged
         bytes32 merchantRef; // keccak256(merchant domain)
         bytes32 approvalRef; // hash of the World ID approval (0 when inside policy)
+        bytes32 cardRef; // keccak256(card id): binds this hold to exactly one virtual card
         bytes32 chargeRef; // keccak256(card transaction id) on settle, reason on refund
     }
 
@@ -138,7 +139,7 @@ contract AnyCheckoutVault is IReceiver {
         uint256 amount,
         uint64 expiresAt,
         bool humanApproved,
-        bytes32 merchantRef,
+        bytes32 cardRef,
         bytes32 approvalRef
     );
     event HoldSettled(
@@ -312,19 +313,25 @@ contract AnyCheckoutVault is IReceiver {
     // Operator actions (AnyCheckout backend, called on behalf of the agent)
     // ------------------------------------------------------------------
 
+    struct HoldRequest {
+        bytes32 holdId; // keccak256 of the AnyCheckout intent id
+        address user;
+        uint256 amount; // exact cart total (USDC, 6 decimals)
+        uint64 ttl; // seconds until the card is closed and the hold can expire
+        bytes32 merchantRef; // keccak256(merchant domain)
+        bytes32 cardRef; // keccak256(virtual card id)
+        bytes32 approvalRef; // non-zero only after a fresh World ID approval for this exact purchase
+    }
+
     /// @notice Lock funds for one checkout. No user signature needed inside the user's policy.
-    /// @param holdId keccak256 of the AnyCheckout intent id
-    /// @param ttl seconds until the card should be closed and the hold can expire
-    /// @param approvalRef non-zero only after a fresh World ID approval for this exact purchase.
-    ///        It lets one purchase go above the policy limits and does not use the weekly allowance.
-    function openHold(
-        bytes32 holdId,
-        address user,
-        uint256 amount,
-        uint64 ttl,
-        bytes32 merchantRef,
-        bytes32 approvalRef
-    ) external onlyOperator nonReentrant {
+    /// @dev A non-zero approvalRef lets one purchase go above the policy limits and does not use
+    ///      the weekly allowance. The backend only sets it after validating a fresh World ID result.
+    function openHold(HoldRequest calldata r) external onlyOperator nonReentrant {
+        bytes32 holdId = r.holdId;
+        address user = r.user;
+        uint256 amount = r.amount;
+        uint64 ttl = r.ttl;
+        bytes32 approvalRef = r.approvalRef;
         if (holdId == bytes32(0)) revert BadHoldId();
         if (amount == 0) revert ZeroAmount();
         if (amount > type(uint128).max) revert AmountTooLarge();
@@ -355,10 +362,11 @@ contract AnyCheckoutVault is IReceiver {
         h.openedAt = uint64(block.timestamp);
         h.expiresAt = uint64(block.timestamp) + ttl;
         h.amount = amount;
-        h.merchantRef = merchantRef;
+        h.merchantRef = r.merchantRef;
         h.approvalRef = approvalRef;
+        h.cardRef = r.cardRef;
 
-        emit HoldOpened(holdId, user, amount, h.expiresAt, human, merchantRef, approvalRef);
+        emit HoldOpened(holdId, user, amount, h.expiresAt, human, r.cardRef, approvalRef);
     }
 
     /// @notice Release a hold before any card exists (for example the card issuer refused).
