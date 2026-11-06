@@ -108,5 +108,5 @@ Set `CARD_ISSUER=agentcard` plus the printed values. Without a public webhook UR
 ## 7. Submission
 
 - Video: follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md).
-- Architecture diagram: the mermaid diagram in the README (Arc asks for one).
+- Architecture diagram: the mermaid diagrams in architecture/overview.md (Arc asks for one).
 - Say which bounties: Arc "Best Smart Contracts with Advanced Stablecoin Logic", Chainlink "Best workflow with CRE", World "World ID Agent Pass", Uniswap "Build with Uniswap".

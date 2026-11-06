@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!chain.isConfigured()) {
-    return NextResponse.json({ configured: false, error: "Vault not configured. Run `npm run local:setup` (see README)." }, { status: 503 });
+    return NextResponse.json({ configured: false, error: "Vault not configured. Run `npm run local:setup` (see architecture/local-dev.md)." }, { status: 503 });
   }
   try {
     const user = await ensureDemoUser();
