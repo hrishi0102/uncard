@@ -1,0 +1,6 @@
+{
+  "agentcardBaseUrl": "https://api.agentcard.sh",
+  "chainSelectorName": "arc-testnet",
+  "vaultAddress": "0x0000000000000000000000000000000000000000",
+  "gasLimit": "500000"
+}

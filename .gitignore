@@ -20,3 +20,4 @@ cre/**/.env
 contracts/deployments/31337.json
 
 .DS_Store
+cre/settlement/node_modules/
