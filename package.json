@@ -1,0 +1,14 @@
+{
+  "name": "anycheckout",
+  "private": true,
+  "version": "0.1.0",
+  "description": "One MCP tool that lets any AI agent pay on any card checkout while the user pays in crypto (Arc escrow, CRE settlement, World ID approvals).",
+  "scripts": {
+    "chain": "anvil --host 127.0.0.1 --port 8545 --chain-id 31337",
+    "local:setup": "bash scripts/local-setup.sh",
+    "dev": "npm --prefix app run dev",
+    "test:contracts": "cd contracts && forge test",
+    "abi": "node scripts/export-abi.mjs",
+    "demo:agent": "node scripts/demo-agent.mjs"
+  }
+}
